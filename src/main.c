@@ -3,18 +3,21 @@
 #include <string.h>
 #include <stdlib.h>
 #include "cpu.h"
+#include "memory.h"
 
-CPU_state cpu = {.pc = 0x80000000}; // Reset vector
+CPU_state cpu = {.pc = MEM_BASE}; // Reset vector
 
 void cpu_exec(uint32_t n) {
   for (uint32_t i = 0; i < n; i++) {
-    printf("CPU executes one cycle at PC=0x%08x\n", cpu.pc);
+    uint32_t instr = paddr_read(cpu.pc, 4);
+    printf("[Fetch] PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
     cpu.pc += 4;
   }
 }
 
 int main() {
   char buf[128];
+  init_mem();
   printf("Welcome to NEMU-RV32! Type 'q' to quit, 'c' to execute a cycle.\n");
 
   while (true) {
