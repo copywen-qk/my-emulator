@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include "cpu.h"
 #include "memory.h"
-#include "decode.h"
 
 CPU_state cpu = {.pc = MEM_BASE}; // Reset vector
 
