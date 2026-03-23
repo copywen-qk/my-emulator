@@ -10,9 +10,24 @@ CPU_state cpu = {.pc = MEM_BASE}; // Reset vector
 void cpu_exec(uint32_t n) {
   for (uint32_t i = 0; i < n; i++) {
     uint32_t instr = paddr_read(cpu.pc, 4);
-    printf("[Fetch]  PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
-    printf("[Decode] Opcode = 0x%02x, rd = %d, funct3 = %d, rs1 = %d, rs2 = %d\n", 
-           OPCODE(instr), RD(instr), FUNC3(instr), RS1(instr), RS2(instr));
+    uint32_t opcode = OPCODE(instr);
+    uint32_t rd = RD(instr);
+    uint32_t rs1 = RS1(instr);
+    int32_t imm = sext(IMM_I(instr), 12);
+
+    printf("[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
+    
+    switch (opcode) {
+      case 0x13: // OP-IMM
+        if (rd != 0) {
+          cpu.gpr[rd] = cpu.gpr[rs1] + imm;
+        }
+        printf("[Execute] ADDI x%d, x%d, %d -> x%d = %d\n", rd, rs1, imm, rd, cpu.gpr[rd]);
+        break;
+      default:
+        printf("[Execute] Unknown opcode: 0x%02x\n", opcode);
+    }
+    
     cpu.pc += 4;
   }
 }

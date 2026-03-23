@@ -19,7 +19,7 @@ uint32_t paddr_read(uint32_t addr, int len) {
 
 void init_mem() {
   uint32_t *p = (uint32_t *)guest_to_host(MEM_BASE);
-  p[0] = 0x00000297; // auipc t0, 0
+  p[0] = 0x06400093; // addi x1, x0, 100
   p[1] = 0x00028823; // sb zero, 16(t0)
-  printf("Memory initialized at 0x%08x with guest image.\n", MEM_BASE);
+  printf("Memory initialized at 0x%08x with ADDI test image.\n", MEM_BASE);
 }
