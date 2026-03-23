@@ -4,13 +4,16 @@
 #include <stdlib.h>
 #include "cpu.h"
 #include "memory.h"
+#include "decode.h"
 
 CPU_state cpu = {.pc = MEM_BASE}; // Reset vector
 
 void cpu_exec(uint32_t n) {
   for (uint32_t i = 0; i < n; i++) {
     uint32_t instr = paddr_read(cpu.pc, 4);
-    printf("[Fetch] PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
+    printf("[Fetch]  PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
+    printf("[Decode] Opcode = 0x%02x, rd = %d, funct3 = %d, rs1 = %d, rs2 = %d\n", 
+           OPCODE(instr), RD(instr), FUNC3(instr), RS1(instr), RS2(instr));
     cpu.pc += 4;
   }
 }
