@@ -8,7 +8,10 @@ typedef uint32_t word_t;
 typedef struct {
   word_t gpr[32];
   word_t pc;
+  int state;
 } CPU_state;
+
+enum { NEMU_RUNNING, NEMU_STOP, NEMU_END };
 
 extern CPU_state cpu;
 
