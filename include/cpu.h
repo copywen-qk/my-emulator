@@ -25,6 +25,7 @@ extern CPU_state cpu;
 #define RS1(i)    BITS(i, 19, 15)
 #define RS2(i)    BITS(i, 24, 20)
 #define FUNC7(i)  BITS(i, 31, 25)
+#define SHAMT(i)  BITS(i, 24, 20)
 #define IMM_I(i)  BITS(i, 31, 20)
 
 static inline int32_t sext(uint32_t x, int len) {

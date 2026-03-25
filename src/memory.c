@@ -20,6 +20,8 @@ uint32_t paddr_read(uint32_t addr, int len) {
 void init_mem() {
   uint32_t *p = (uint32_t *)guest_to_host(MEM_BASE);
   p[0] = 0x06400093; // addi x1, x0, 100
-  p[1] = 0x00100073; // ebreak
-  printf("Memory initialized at 0x%08x with ADDI + EBREAK test image.\n", MEM_BASE);
+  p[1] = 0x00108133; // add x2, x1, x1  (x2 = 200)
+  p[2] = 0x401101b3; // sub x3, x2, x1  (x3 = 100)
+  p[3] = 0x00100073; // ebreak
+  printf("Memory initialized with R-Type/I-Type test instructions.\n");
 }

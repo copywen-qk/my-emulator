@@ -26,13 +26,47 @@ void cpu_exec(uint32_t n) {
     printf("[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
     
     switch (opcode) {
-      case 0x13: // OP-IMM
-        if (rd != 0) {
-          cpu.gpr[rd] = cpu.gpr[rs1] + imm;
+      case 0x13: { // OP-IMM
+        uint32_t funct3 = FUNC3(instr);
+        uint32_t shamt = SHAMT(instr);
+        switch (funct3) {
+          case 0: cpu.gpr[rd] = cpu.gpr[rs1] + imm; break; // ADDI
+          case 4: cpu.gpr[rd] = cpu.gpr[rs1] ^ imm; break; // XORI
+          case 6: cpu.gpr[rd] = cpu.gpr[rs1] | imm; break; // ORI
+          case 7: cpu.gpr[rd] = cpu.gpr[rs1] & imm; break; // ANDI
+          case 1: cpu.gpr[rd] = cpu.gpr[rs1] << shamt; break; // SLLI
+          case 5:
+            if (BITS(instr, 31, 30) == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> shamt; // SRLI
+            else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> shamt; // SRAI
+            break;
+          default: printf("[Execute] Unknown OP-IMM funct3: %d\n", funct3);
         }
-        printf("[Execute] ADDI x%d (%s), x%d (%s), %d -> x%d = %d\n", 
-               rd, regs[rd], rs1, regs[rs1], imm, rd, cpu.gpr[rd]);
+        if (rd == 0) cpu.gpr[0] = 0;
         break;
+      }
+      case 0x33: { // OP (R-Type)
+        uint32_t funct3 = FUNC3(instr);
+        uint32_t funct7 = FUNC7(instr);
+        uint32_t rs2 = RS2(instr);
+        switch (funct3) {
+          case 0:
+            if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] + cpu.gpr[rs2]; // ADD
+            else cpu.gpr[rd] = cpu.gpr[rs1] - cpu.gpr[rs2]; // SUB
+            break;
+          case 1: cpu.gpr[rd] = cpu.gpr[rs1] << (cpu.gpr[rs2] & 0x1f); break; // SLL
+          case 2: cpu.gpr[rd] = ((int32_t)cpu.gpr[rs1] < (int32_t)cpu.gpr[rs2]) ? 1 : 0; break; // SLT
+          case 3: cpu.gpr[rd] = (cpu.gpr[rs1] < cpu.gpr[rs2]) ? 1 : 0; break; // SLTU
+          case 4: cpu.gpr[rd] = cpu.gpr[rs1] ^ cpu.gpr[rs2]; break; // XOR
+          case 5:
+            if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRL
+            else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRA
+            break;
+          case 6: cpu.gpr[rd] = cpu.gpr[rs1] | cpu.gpr[rs2]; break; // OR
+          case 7: cpu.gpr[rd] = cpu.gpr[rs1] & cpu.gpr[rs2]; break; // AND
+        }
+        if (rd == 0) cpu.gpr[0] = 0;
+        break;
+      }
       case 0x73: // SYSTEM
         if (instr == 0x00100073) {
           printf("[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
