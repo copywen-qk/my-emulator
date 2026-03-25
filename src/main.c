@@ -21,6 +21,7 @@ void cpu_exec(uint32_t n) {
     uint32_t opcode = OPCODE(instr);
     uint32_t rd = RD(instr);
     uint32_t rs1 = RS1(instr);
+    uint32_t rs2 = RS2(instr);
     int32_t imm = sext(IMM_I(instr), 12);
 
     printf("[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
@@ -47,7 +48,6 @@ void cpu_exec(uint32_t n) {
       case 0x33: { // OP (R-Type)
         uint32_t funct3 = FUNC3(instr);
         uint32_t funct7 = FUNC7(instr);
-        uint32_t rs2 = RS2(instr);
         switch (funct3) {
           case 0:
             if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] + cpu.gpr[rs2]; // ADD
@@ -70,17 +70,16 @@ void cpu_exec(uint32_t n) {
       case 0x37: // LUI
         cpu.gpr[rd] = IMM_U(instr);
         if (rd == 0) cpu.gpr[0] = 0;
-        printf("[Execute] LUI x%d, 0x%08x\n", rd, cpu.gpr[rd]);
+        printf("[Execute] LUI x%d (%s), 0x%08x\n", rd, regs[rd], cpu.gpr[rd]);
         break;
       case 0x23: { // Store
         uint32_t funct3 = FUNC3(instr);
-        uint32_t rs2 = RS2(instr);
         int32_t s_imm = sext(IMM_S(instr), 12);
         uint32_t addr = cpu.gpr[rs1] + s_imm;
         if (funct3 == 0) { // SB
           paddr_write(addr, 1, cpu.gpr[rs2]);
-          printf("[Execute] SB x%d, %d(x%d) [Addr: 0x%08x, Data: 0x%02x]\n", 
-                 rs2, s_imm, rs1, addr, (uint8_t)cpu.gpr[rs2]);
+          printf("[Execute] SB x%d (%s), %d(x%d (%s)) [Addr: 0x%08x, Data: 0x%02x]\n", 
+                 rs2, regs[rs2], s_imm, rs1, regs[rs1], addr, (uint8_t)cpu.gpr[rs2]);
         }
         break;
       }
