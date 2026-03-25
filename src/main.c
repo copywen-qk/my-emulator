@@ -67,6 +67,23 @@ void cpu_exec(uint32_t n) {
         if (rd == 0) cpu.gpr[0] = 0;
         break;
       }
+      case 0x37: // LUI
+        cpu.gpr[rd] = IMM_U(instr);
+        if (rd == 0) cpu.gpr[0] = 0;
+        printf("[Execute] LUI x%d, 0x%08x\n", rd, cpu.gpr[rd]);
+        break;
+      case 0x23: { // Store
+        uint32_t funct3 = FUNC3(instr);
+        uint32_t rs2 = RS2(instr);
+        int32_t s_imm = sext(IMM_S(instr), 12);
+        uint32_t addr = cpu.gpr[rs1] + s_imm;
+        if (funct3 == 0) { // SB
+          paddr_write(addr, 1, cpu.gpr[rs2]);
+          printf("[Execute] SB x%d, %d(x%d) [Addr: 0x%08x, Data: 0x%02x]\n", 
+                 rs2, s_imm, rs1, addr, (uint8_t)cpu.gpr[rs2]);
+        }
+        break;
+      }
       case 0x73: // SYSTEM
         if (instr == 0x00100073) {
           printf("[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
@@ -89,7 +106,10 @@ int main() {
   printf("Welcome to NEMU-RV32! Type 'q' to quit, 'c' to execute, 'info r' to inspect.\n");
 
   while (true) {
-    printf("(nemu) ");
+    printf("\033[32m[Guest Output]:\033[0m ");
+    fflush(stdout); 
+    // This is just a visual hint; real output happens in paddr_write
+    printf("\n(nemu) ");
     if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
     char *token = strtok(buf, " \n");

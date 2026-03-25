@@ -17,11 +17,23 @@ uint32_t paddr_read(uint32_t addr, int len) {
   return ret;
 }
 
+void paddr_write(uint32_t addr, int len, uint32_t data) {
+  if (addr == SERIAL_PORT) {
+    putchar((char)data);
+    fflush(stdout);
+    return;
+  }
+  uint8_t *p = guest_to_host(addr);
+  for (int i = 0; i < len; i++) {
+    p[i] = (data >> (i * 8)) & 0xff;
+  }
+}
+
 void init_mem() {
   uint32_t *p = (uint32_t *)guest_to_host(MEM_BASE);
-  p[0] = 0x06400093; // addi x1, x0, 100
-  p[1] = 0x00108133; // add x2, x1, x1  (x2 = 200)
-  p[2] = 0x401101b3; // sub x3, x2, x1  (x3 = 100)
+  p[0] = 0xa00002b7; // lui t0, 0xa0000
+  p[1] = 0x04800313; // addi t1, x0, 72  ('H')
+  p[2] = 0x3f828823; // sb t1, 0x3f8(t0)
   p[3] = 0x00100073; // ebreak
-  printf("Memory initialized with R-Type/I-Type test instructions.\n");
+  printf("Memory initialized with LUI + SB (MMIO) test instructions.\n");
 }
