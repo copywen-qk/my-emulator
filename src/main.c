@@ -22,12 +22,13 @@ void cpu_exec(uint32_t n) {
     uint32_t rd = RD(instr);
     uint32_t rs1 = RS1(instr);
     uint32_t rs2 = RS2(instr);
-    int32_t imm = sext(IMM_I(instr), 12);
+    uint32_t next_pc = cpu.pc + 4;
 
     printf("[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
     
     switch (opcode) {
       case 0x13: { // OP-IMM
+        int32_t imm = sext(IMM_I(instr), 12);
         uint32_t funct3 = FUNC3(instr);
         uint32_t shamt = SHAMT(instr);
         switch (funct3) {
@@ -42,7 +43,6 @@ void cpu_exec(uint32_t n) {
             break;
           default: printf("[Execute] Unknown OP-IMM funct3: %d\n", funct3);
         }
-        if (rd == 0) cpu.gpr[0] = 0;
         break;
       }
       case 0x33: { // OP (R-Type)
@@ -64,12 +64,10 @@ void cpu_exec(uint32_t n) {
           case 6: cpu.gpr[rd] = cpu.gpr[rs1] | cpu.gpr[rs2]; break; // OR
           case 7: cpu.gpr[rd] = cpu.gpr[rs1] & cpu.gpr[rs2]; break; // AND
         }
-        if (rd == 0) cpu.gpr[0] = 0;
         break;
       }
       case 0x37: // LUI
         cpu.gpr[rd] = IMM_U(instr);
-        if (rd == 0) cpu.gpr[0] = 0;
         printf("[Execute] LUI x%d (%s), 0x%08x\n", rd, regs[rd], cpu.gpr[rd]);
         break;
       case 0x23: { // Store
@@ -80,6 +78,23 @@ void cpu_exec(uint32_t n) {
           paddr_write(addr, 1, cpu.gpr[rs2]);
           printf("[Execute] SB x%d (%s), %d(x%d (%s)) [Addr: 0x%08x, Data: 0x%02x]\n", 
                  rs2, regs[rs2], s_imm, rs1, regs[rs1], addr, (uint8_t)cpu.gpr[rs2]);
+        }
+        break;
+      }
+      case 0x6f: { // JAL
+        int32_t j_imm = sext(IMM_J(instr), 21);
+        cpu.gpr[rd] = cpu.pc + 4;
+        next_pc = cpu.pc + j_imm;
+        printf("[Execute] JAL x%d (%s), offset %d -> next_pc = 0x%08x\n", rd, regs[rd], j_imm, next_pc);
+        break;
+      }
+      case 0x63: { // Branch
+        uint32_t funct3 = FUNC3(instr);
+        int32_t b_imm = sext(IMM_B(instr), 13);
+        if (funct3 == 1) { // BNE
+          if (cpu.gpr[rs1] != cpu.gpr[rs2]) next_pc = cpu.pc + b_imm;
+          printf("[Execute] BNE x%d (%s), x%d (%s), offset %d -> next_pc = 0x%08x\n", 
+                 rs1, regs[rs1], rs2, regs[rs2], b_imm, next_pc);
         }
         break;
       }
@@ -94,7 +109,8 @@ void cpu_exec(uint32_t n) {
         cpu.state = NEMU_STOP;
     }
     
-    cpu.pc += 4;
+    if (rd == 0) cpu.gpr[0] = 0;
+    cpu.pc = next_pc;
     if (cpu.state != NEMU_RUNNING) break;
   }
 }

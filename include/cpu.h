@@ -29,6 +29,8 @@ extern CPU_state cpu;
 #define IMM_I(i)  BITS(i, 31, 20)
 #define IMM_S(i)  ((BITS(i, 31, 25) << 5) | BITS(i, 11, 7))
 #define IMM_U(i)  (i & 0xfffff000)
+#define IMM_B(i)  ((BITS(i, 31, 31) << 12) | (BITS(i, 7, 7) << 11) | (BITS(i, 30, 25) << 5) | (BITS(i, 11, 8) << 1))
+#define IMM_J(i)  ((BITS(i, 31, 31) << 20) | (BITS(i, 19, 12) << 12) | (BITS(i, 20, 20) << 11) | (BITS(i, 30, 21) << 1))
 
 static inline int32_t sext(uint32_t x, int len) {
   int32_t res = (int32_t)x;
