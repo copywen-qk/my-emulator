@@ -9,7 +9,7 @@ uint8_t* guest_to_host(uint32_t addr) { return pmem + (addr - MEM_BASE); }
 
 uint32_t paddr_read(uint32_t addr, int len) {
   if (addr < MEM_BASE || addr >= MEM_BASE + MEM_SIZE) {
-    printf("[Memory] Invalid read address: 0x%08x\n", addr);
+    fprintf(stderr, "[Memory] Invalid read address: 0x%08x\n", addr);
     return 0;
   }
   uint8_t *p = guest_to_host(addr);
@@ -23,12 +23,12 @@ uint32_t paddr_read(uint32_t addr, int len) {
 
 void paddr_write(uint32_t addr, int len, uint32_t data) {
   if (addr == SERIAL_PORT) {
-    putchar((char)data);
+    fputc((char)data, stdout);
     fflush(stdout);
     return;
   }
   if (addr < MEM_BASE || addr >= MEM_BASE + MEM_SIZE) {
-    printf("[Memory] Invalid write address: 0x%08x\n", addr);
+    fprintf(stderr, "[Memory] Invalid write address: 0x%08x\n", addr);
     return;
   }
   uint8_t *p = guest_to_host(addr);
@@ -55,5 +55,5 @@ void init_mem() {
   // -24 = 0x...FE8. In B-Type encoding: 0xfe0314e3 (Wait, let's re-verify)
   p[9] = 0xfe0314e3; // 0x80000024: bne x6, x0, -24
   p[10] = 0x00100073;// 0x80000028: ebreak
-  printf("Memory initialized with Hello Loop (BNE test).\n");
+  fprintf(stderr, "Memory initialized with Hello Loop (BNE test).\n");
 }

@@ -24,7 +24,7 @@ void cpu_exec(uint32_t n) {
     uint32_t rs2 = RS2(instr);
     uint32_t next_pc = cpu.pc + 4;
 
-    printf("[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
+    fprintf(stderr, "[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
     
     switch (opcode) {
       case 0x13: { // OP-IMM
@@ -41,7 +41,7 @@ void cpu_exec(uint32_t n) {
             if (BITS(instr, 31, 30) == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> shamt; // SRLI
             else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> shamt; // SRAI
             break;
-          default: printf("[Execute] Unknown OP-IMM funct3: %d\n", funct3);
+          default: fprintf(stderr, "[Execute] Unknown OP-IMM funct3: %d\n", funct3);
         }
         break;
       }
@@ -68,7 +68,7 @@ void cpu_exec(uint32_t n) {
       }
       case 0x37: // LUI
         cpu.gpr[rd] = IMM_U(instr);
-        printf("[Execute] LUI x%d (%s), 0x%08x\n", rd, regs[rd], cpu.gpr[rd]);
+        fprintf(stderr, "[Execute] LUI x%d (%s), 0x%08x\n", rd, regs[rd], cpu.gpr[rd]);
         break;
       case 0x23: { // Store
         uint32_t funct3 = FUNC3(instr);
@@ -76,7 +76,7 @@ void cpu_exec(uint32_t n) {
         uint32_t addr = cpu.gpr[rs1] + s_imm;
         if (funct3 == 0) { // SB
           paddr_write(addr, 1, cpu.gpr[rs2]);
-          printf("[Execute] SB x%d (%s), %d(x%d (%s)) [Addr: 0x%08x, Data: 0x%02x]\n", 
+          fprintf(stderr, "[Execute] SB x%d (%s), %d(x%d (%s)) [Addr: 0x%08x, Data: 0x%02x]\n", 
                  rs2, regs[rs2], s_imm, rs1, regs[rs1], addr, (uint8_t)cpu.gpr[rs2]);
         }
         break;
@@ -85,7 +85,7 @@ void cpu_exec(uint32_t n) {
         int32_t j_imm = sext(IMM_J(instr), 21);
         cpu.gpr[rd] = cpu.pc + 4;
         next_pc = cpu.pc + j_imm;
-        printf("[Execute] JAL x%d (%s), offset %d -> next_pc = 0x%08x\n", rd, regs[rd], j_imm, next_pc);
+        fprintf(stderr, "[Execute] JAL x%d (%s), offset %d -> next_pc = 0x%08x\n", rd, regs[rd], j_imm, next_pc);
         break;
       }
       case 0x63: { // Branch
@@ -93,19 +93,19 @@ void cpu_exec(uint32_t n) {
         int32_t b_imm = sext(IMM_B(instr), 13);
         if (funct3 == 1) { // BNE
           if (cpu.gpr[rs1] != cpu.gpr[rs2]) next_pc = cpu.pc + b_imm;
-          printf("[Execute] BNE x%d (%s), x%d (%s), offset %d -> next_pc = 0x%08x\n", 
+          fprintf(stderr, "[Execute] BNE x%d (%s), x%d (%s), offset %d -> next_pc = 0x%08x\n", 
                  rs1, regs[rs1], rs2, regs[rs2], b_imm, next_pc);
         }
         break;
       }
       case 0x73: // SYSTEM
         if (instr == 0x00100073) {
-          printf("[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
+          fprintf(stderr, "[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
           cpu.state = NEMU_END;
         }
         break;
       default:
-        printf("[Execute] Unknown opcode: 0x%02x\n", opcode);
+        fprintf(stderr, "[Execute] Unknown opcode: 0x%02x\n", opcode);
         cpu.state = NEMU_STOP;
     }
     
@@ -118,13 +118,13 @@ void cpu_exec(uint32_t n) {
 int main() {
   char buf[128];
   init_mem();
-  printf("Welcome to NEMU-RV32! Type 'q' to quit, 'c' to execute, 'info r' to inspect.\n");
+  fprintf(stderr, "Welcome to NEMU-RV32! Type 'q' to quit, 'c' to execute, 'info r' to inspect.\n");
 
   while (true) {
-    printf("\033[32m[Guest Output]:\033[0m ");
+    fprintf(stderr, "\033[32m[Guest Output]:\033[0m ");
     fflush(stdout); 
     // This is just a visual hint; real output happens in paddr_write
-    printf("\n(nemu) ");
+    fprintf(stderr, "\n(nemu) ");
     if (fgets(buf, sizeof(buf), stdin) == NULL) break;
 
     char *token = strtok(buf, " \n");
@@ -138,13 +138,13 @@ int main() {
       char *arg = strtok(NULL, " \n");
       if (arg != NULL && strcmp(arg, "r") == 0) {
         for (int i = 0; i < 32; i++) {
-          printf("%-4s (%-3s): 0x%08x (%d)\n", 
+          fprintf(stderr, "%-4s (%-3s): 0x%08x (%d)\n", 
                  (char[]){'x', (i/10)+'0', (i%10)+'0', '\0'}, regs[i], cpu.gpr[i], cpu.gpr[i]);
         }
-        printf("%-10s: 0x%08x (%d)\n", "pc", cpu.pc, cpu.pc);
+        fprintf(stderr, "%-10s: 0x%08x (%d)\n", "pc", cpu.pc, cpu.pc);
       }
     } else {
-      printf("Unknown command: %s\n", token);
+      fprintf(stderr, "Unknown command: %s\n", token);
     }
   }
 

@@ -15,7 +15,6 @@ def main():
         [binary],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
         bufsize=0
     )
 
