@@ -59,6 +59,12 @@ void cpu_exec(uint32_t n) {
         }
         break;
       }
+      case 0x17: { // AUIPC
+        uint32_t u_imm = IMM_U(instr);
+        cpu.gpr[rd] = cpu.pc + u_imm;
+        fprintf(stderr, "[Execute] AUIPC x%d (%s), 0x%08x -> x%d = 0x%08x\n", rd, regs[rd], u_imm, rd, cpu.gpr[rd]);
+        break;
+      }
       case 0x33: { // OP (R-Type)
         uint32_t funct3 = FUNC3(instr);
         uint32_t funct7 = FUNC7(instr);
@@ -98,8 +104,10 @@ void cpu_exec(uint32_t n) {
       }
       case 0x67: { // JALR
         int32_t i_imm = sext(IMM_I(instr), 12);
-        cpu.gpr[rd] = cpu.pc + 4;
+        uint32_t temp_ret = cpu.pc + 4;
         next_pc = (cpu.gpr[rs1] + i_imm) & ~1;
+        cpu.gpr[rd] = temp_ret;
+        fprintf(stderr, "[Execute] JALR x%d (%s), x%d (%s), %d -> next_pc = 0x%08x\n", rd, regs[rd], rs1, regs[rs1], i_imm, next_pc);
         break;
       }
       case 0x6f: { // JAL
