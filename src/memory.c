@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdlib.h>
 #include "memory.h"
 
 static uint8_t pmem[MEM_SIZE];
@@ -50,7 +51,9 @@ long load_image(const char *img_file) {
   fseek(fp, 0, SEEK_END);
   long size = ftell(fp);
   fseek(fp, 0, SEEK_SET);
-  long ret = fread(guest_to_host(MEM_BASE), size, 1, fp);
+  if (fread(guest_to_host(MEM_BASE), size, 1, fp) != 1) {
+    fprintf(stderr, "Read image error\n");
+  }
   fclose(fp);
   fprintf(stderr, "Loaded image %s (%ld bytes)\n", img_file, size);
   return size;
