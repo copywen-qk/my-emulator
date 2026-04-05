@@ -27,6 +27,20 @@ void cpu_exec(uint32_t n) {
     fprintf(stderr, "[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
     
     switch (opcode) {
+      case 0x03: { // Load
+        int32_t imm = sext(IMM_I(instr), 12);
+        uint32_t funct3 = FUNC3(instr);
+        uint32_t addr = cpu.gpr[rs1] + imm;
+        switch (funct3) {
+          case 0: cpu.gpr[rd] = sext(paddr_read(addr, 1), 8); break;  // LB
+          case 1: cpu.gpr[rd] = sext(paddr_read(addr, 2), 16); break; // LH
+          case 2: cpu.gpr[rd] = paddr_read(addr, 4); break;           // LW
+          case 4: cpu.gpr[rd] = paddr_read(addr, 1); break;           // LBU
+          case 5: cpu.gpr[rd] = paddr_read(addr, 2); break;           // LHU
+          default: fprintf(stderr, "[Execute] Unknown Load funct3: %d\n", funct3);
+        }
+        break;
+      }
       case 0x13: { // OP-IMM
         int32_t imm = sext(IMM_I(instr), 12);
         uint32_t funct3 = FUNC3(instr);
@@ -74,11 +88,18 @@ void cpu_exec(uint32_t n) {
         uint32_t funct3 = FUNC3(instr);
         int32_t s_imm = sext(IMM_S(instr), 12);
         uint32_t addr = cpu.gpr[rs1] + s_imm;
-        if (funct3 == 0) { // SB
-          paddr_write(addr, 1, cpu.gpr[rs2]);
-          fprintf(stderr, "[Execute] SB x%d (%s), %d(x%d (%s)) [Addr: 0x%08x, Data: 0x%02x]\n", 
-                 rs2, regs[rs2], s_imm, rs1, regs[rs1], addr, (uint8_t)cpu.gpr[rs2]);
+        switch (funct3) {
+          case 0: paddr_write(addr, 1, cpu.gpr[rs2]); break; // SB
+          case 1: paddr_write(addr, 2, cpu.gpr[rs2]); break; // SH
+          case 2: paddr_write(addr, 4, cpu.gpr[rs2]); break; // SW
+          default: fprintf(stderr, "[Execute] Unknown Store funct3: %d\n", funct3);
         }
+        break;
+      }
+      case 0x67: { // JALR
+        int32_t i_imm = sext(IMM_I(instr), 12);
+        cpu.gpr[rd] = cpu.pc + 4;
+        next_pc = (cpu.gpr[rs1] + i_imm) & ~1;
         break;
       }
       case 0x6f: { // JAL
@@ -91,11 +112,16 @@ void cpu_exec(uint32_t n) {
       case 0x63: { // Branch
         uint32_t funct3 = FUNC3(instr);
         int32_t b_imm = sext(IMM_B(instr), 13);
-        if (funct3 == 1) { // BNE
-          if (cpu.gpr[rs1] != cpu.gpr[rs2]) next_pc = cpu.pc + b_imm;
-          fprintf(stderr, "[Execute] BNE x%d (%s), x%d (%s), offset %d -> next_pc = 0x%08x\n", 
-                 rs1, regs[rs1], rs2, regs[rs2], b_imm, next_pc);
+        bool taken = false;
+        switch (funct3) {
+          case 0: taken = (cpu.gpr[rs1] == cpu.gpr[rs2]); break; // BEQ
+          case 1: taken = (cpu.gpr[rs1] != cpu.gpr[rs2]); break; // BNE
+          case 4: taken = ((int32_t)cpu.gpr[rs1] < (int32_t)cpu.gpr[rs2]); break;  // BLT
+          case 5: taken = ((int32_t)cpu.gpr[rs1] >= (int32_t)cpu.gpr[rs2]); break; // BGE
+          case 6: taken = (cpu.gpr[rs1] < cpu.gpr[rs2]); break;  // BLTU
+          case 7: taken = (cpu.gpr[rs1] >= cpu.gpr[rs2]); break; // BGEU
         }
+        if (taken) next_pc = cpu.pc + b_imm;
         break;
       }
       case 0x73: // SYSTEM
