@@ -37,4 +37,15 @@ static inline int32_t sext(uint32_t x, int len) {
   return (res << (32 - len)) >> (32 - len);
 }
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void nemu_step();
+uint32_t nemu_get_reg(int id);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

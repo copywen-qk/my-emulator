@@ -37,6 +37,25 @@ void paddr_write(uint32_t addr, int len, uint32_t data) {
   }
 }
 
+long load_image(const char *img_file) {
+  if (img_file == NULL) {
+    init_mem();
+    return 0;
+  }
+  FILE *fp = fopen(img_file, "rb");
+  if (fp == NULL) {
+    fprintf(stderr, "Can't open image file: %s\n", img_file);
+    exit(1);
+  }
+  fseek(fp, 0, SEEK_END);
+  long size = ftell(fp);
+  fseek(fp, 0, SEEK_SET);
+  long ret = fread(guest_to_host(MEM_BASE), size, 1, fp);
+  fclose(fp);
+  fprintf(stderr, "Loaded image %s (%ld bytes)\n", img_file, size);
+  return size;
+}
+
 void init_mem() {
   uint32_t *p = (uint32_t *)guest_to_host(MEM_BASE);
   // Hello Loop: Prints 'H', 'I', '\n'
