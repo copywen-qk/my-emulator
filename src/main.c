@@ -159,6 +159,7 @@ void cpu_exec(uint32_t n) {
   }
 }
 
+#ifndef CONFIG_VERILATOR
 int main(int argc, char *argv[]) {
   char buf[128];
   if (argc > 1) {
@@ -198,3 +199,4 @@ int main(int argc, char *argv[]) {
 
   return 0;
 }
+#endif

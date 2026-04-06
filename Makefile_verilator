@@ -1,0 +1,21 @@
+# Verilator configuration
+VERILATOR = verilator
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall -CFLAGS "-DCONFIG_VERILATOR" -Iinclude
+
+# Sources
+VSRC = vsrc/dummy_cpu.v
+CSRC = csrc/sim_main.cpp src/*.c
+VOBJS = obj_dir/Vdummy_cpu
+
+.PHONY: sim run clean
+
+sim: $(VOBJS)
+
+$(VOBJS): $(VSRC) $(CSRC)
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VSRC) $(CSRC)
+
+run: sim
+	./obj_dir/Vdummy_cpu tests/dummy.bin
+
+clean:
+	rm -rf obj_dir
