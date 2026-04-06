@@ -4,3 +4,7 @@ build/
 nemu
 git
 docs/
+obj_dir/
+*.elf
+*.bin
+*.txt
