@@ -151,6 +151,14 @@ uint32_t nemu_get_reg(int id) {
   return 0;
 }
 
+void difftest_step(uint32_t dut_pc) {
+  if (dut_pc != cpu.pc) {
+    fprintf(stderr, "[DiffTest] PC mismatch! DUT: 0x%08x, REF: 0x%08x\n", dut_pc, cpu.pc);
+    exit(1);
+  }
+  nemu_step();
+}
+
 void cpu_exec(uint32_t n) {
   cpu.state = NEMU_RUNNING;
   for (uint32_t i = 0; i < n; i++) {

@@ -42,6 +42,7 @@ extern "C" {
 #endif
 
 void nemu_step();
+void difftest_step(uint32_t dut_pc);
 uint32_t nemu_get_reg(int id);
 
 #ifdef __cplusplus

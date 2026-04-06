@@ -7,9 +7,17 @@
 #define MEM_BASE 0x80000000
 #define SERIAL_PORT 0xa00003f8
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 uint32_t paddr_read(uint32_t addr, int len);
 void paddr_write(uint32_t addr, int len, uint32_t data);
 long load_image(const char *img_file);
 void init_mem();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
