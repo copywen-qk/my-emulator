@@ -5,7 +5,7 @@ LD = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 
-CFLAGS = -march=rv32i -mabi=ilp32 -nostdlib -O2
+CFLAGS = -march=rv32im -mabi=ilp32 -nostdlib -O2
 
 all: dummy.bin dummy.txt vga_test.bin
 
