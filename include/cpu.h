@@ -50,6 +50,8 @@ extern "C" {
 void nemu_step();
 void difftest_step(uint32_t dut_pc);
 uint32_t nemu_get_reg(int id);
+word_t csr_read(int csr_no);
+void csr_write(int csr_no, word_t val);
 
 #ifdef __cplusplus
 }
