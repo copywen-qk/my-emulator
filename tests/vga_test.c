@@ -3,9 +3,7 @@
 #define VGACTL_ADDR 0xa0000100
 #define FB_ADDR 0xa1000000
 
-void draw_pixel(int x, int y, int width, uint32_t color) {
-    ((uint32_t *)FB_ADDR)[y * width + x] = color;
-}
+void draw_pixel(int x, int y, int width, uint32_t color);
 
 void _start() {
     volatile uint32_t *vgactl = (uint32_t *)VGACTL_ADDR;
@@ -21,4 +19,8 @@ void _start() {
 
     // Indicate finished with a specific pattern or just loop
     while (1);
+}
+
+void draw_pixel(int x, int y, int width, uint32_t color) {
+    ((uint32_t *)FB_ADDR)[y * width + x] = color;
 }

@@ -7,7 +7,7 @@ OBJDUMP = $(CROSS_COMPILE)objdump
 
 CFLAGS = -march=rv32im -mabi=ilp32 -nostdlib -O2
 
-all: dummy.bin dummy.txt vga_test.bin
+all: dummy.bin dummy.txt vga_test.bin flappy.bin
 
 dummy.elf: dummy.S link.ld
 	$(CC) $(CFLAGS) -T link.ld dummy.S -o dummy.elf
@@ -23,6 +23,12 @@ vga_test.elf: vga_test.c link.ld
 
 vga_test.bin: vga_test.elf
 	$(OBJCOPY) -S -O binary vga_test.elf vga_test.bin
+
+flappy.elf: flappy.c link.ld
+	$(CC) $(CFLAGS) -T link.ld flappy.c -o flappy.elf
+
+flappy.bin: flappy.elf
+	$(OBJCOPY) -S -O binary flappy.elf flappy.bin
 
 clean:
 	rm -f *.elf *.bin *.txt

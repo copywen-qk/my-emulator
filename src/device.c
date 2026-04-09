@@ -14,6 +14,7 @@ static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 static SDL_Texture *texture = NULL;
 static uint32_t fb[SCREEN_W * SCREEN_H];
+static int key_pressed = 0;
 
 static uint64_t get_time_internal() {
     struct timeval now;
@@ -52,6 +53,10 @@ void device_update() {
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
             exit(0);
+        } else if (event.type == SDL_KEYDOWN) {
+            if (event.key.keysym.sym == SDLK_SPACE) key_pressed = 1;
+        } else if (event.type == SDL_KEYUP) {
+            if (event.key.keysym.sym == SDLK_SPACE) key_pressed = 0;
         }
     }
 
@@ -69,7 +74,7 @@ uint32_t rtc_read(int offset) {
 }
 
 uint32_t kbd_read() {
-    return 0; // Stub
+    return key_pressed;
 }
 
 uint32_t vgactl_read(int offset) {
