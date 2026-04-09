@@ -130,12 +130,30 @@ void nemu_step() {
       if (taken) next_pc = cpu.pc + b_imm;
       break;
     }
-    case 0x73: // SYSTEM
-      if (instr == 0x00100073) {
-        fprintf(stderr, "[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
-        cpu.state = NEMU_END;
+    case 0x73: { // SYSTEM
+      int csr_no = IMM_I(instr);
+      uint32_t funct3 = FUNC3(instr);
+      if (funct3 == 0) {
+        // TODO: Exception/Trap (ECALL/EBREAK/MRET)
+        if (instr == 0x00100073) {
+          fprintf(stderr, "[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
+          cpu.state = NEMU_END;
+        }
+      } else {
+        word_t t = csr_read(csr_no);
+        word_t zimm = rs1;
+        switch (funct3) {
+          case 1: csr_write(csr_no, cpu.gpr[rs1]); break; // CSRRW
+          case 2: if (rs1 != 0) csr_write(csr_no, t | cpu.gpr[rs1]); break; // CSRRS
+          case 3: if (rs1 != 0) csr_write(csr_no, t & ~cpu.gpr[rs1]); break; // CSRRC
+          case 5: csr_write(csr_no, zimm); break; // CSRRWI
+          case 6: if (zimm != 0) csr_write(csr_no, t | zimm); break; // CSRRSI
+          case 7: if (zimm != 0) csr_write(csr_no, t & ~zimm); break; // CSRRCI
+        }
+        if (rd != 0) cpu.gpr[rd] = t;
       }
       break;
+    }
     default:
       fprintf(stderr, "[Execute] Unknown opcode: 0x%02x\n", opcode);
       cpu.state = NEMU_STOP;
@@ -157,6 +175,25 @@ void difftest_step(uint32_t dut_pc) {
     exit(1);
   }
   nemu_step();
+}
+
+word_t csr_read(int csr_no) {
+  switch (csr_no) {
+    case CSR_MSTATUS: return cpu.mstatus;
+    case CSR_MTVEC:   return cpu.mtvec;
+    case CSR_MEPC:    return cpu.mepc;
+    case CSR_MCAUSE:  return cpu.mcause;
+    default: return 0;
+  }
+}
+
+void csr_write(int csr_no, word_t val) {
+  switch (csr_no) {
+    case CSR_MSTATUS: cpu.mstatus = val; break;
+    case CSR_MTVEC:   cpu.mtvec = val; break;
+    case CSR_MEPC:    cpu.mepc = val; break;
+    case CSR_MCAUSE:  cpu.mcause = val; break;
+  }
 }
 
 void cpu_exec(uint32_t n) {

@@ -8,12 +8,18 @@ typedef uint32_t word_t;
 typedef struct {
   word_t gpr[32];
   word_t pc;
+  word_t mstatus, mtvec, mepc, mcause;
   int state;
 } CPU_state;
 
 enum { NEMU_RUNNING, NEMU_STOP, NEMU_END };
 
 extern CPU_state cpu;
+
+#define CSR_MSTATUS 0x300
+#define CSR_MTVEC 0x305
+#define CSR_MEPC 0x341
+#define CSR_MCAUSE 0x342
 
 // Extract bits [hi, lo] from x
 #define BITS(x, hi, lo) (((x) >> (lo)) & ((1U << ((hi) - (lo) + 1)) - 1))
