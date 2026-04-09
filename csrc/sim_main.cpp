@@ -4,6 +4,7 @@
 
 extern "C" {
     long load_image(const char *img_file);
+    void init_device();
 }
 
 int main(int argc, char** argv) {
@@ -14,6 +15,7 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    init_device();
     load_image(argv[1]);
 
     Vdummy_cpu* top = new Vdummy_cpu;

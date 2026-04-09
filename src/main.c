@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "cpu.h"
 #include "memory.h"
+#include "device.h"
 
 CPU_state cpu = {.pc = MEM_BASE, .state = NEMU_STOP}; // Reset vector
 
@@ -225,6 +226,7 @@ void cpu_exec(uint32_t n) {
 #ifndef CONFIG_VERILATOR
 int main(int argc, char *argv[]) {
   char buf[128];
+  init_device();
   if (argc > 1) {
     load_image(argv[1]);
   } else {

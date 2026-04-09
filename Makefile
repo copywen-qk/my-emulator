@@ -5,6 +5,7 @@ OBJ_DIR = build
 TARGET = $(OBJ_DIR)/nemu
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
+# Ensure device.c is included if wildcard is used, it should be fine.
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 all: $(TARGET)

@@ -3,12 +3,15 @@
 #include <string.h>
 #include <stdlib.h>
 #include "memory.h"
+#include "device.h"
 
 static uint8_t pmem[MEM_SIZE];
 
 uint8_t* guest_to_host(uint32_t addr) { return pmem + (addr - MEM_BASE); }
 
 uint32_t paddr_read(uint32_t addr, int len) {
+  if (addr == RTC_ADDR) return rtc_read(0);
+  if (addr == RTC_ADDR + 4) return rtc_read(4);
   if (addr < MEM_BASE || addr >= MEM_BASE + MEM_SIZE) {
     fprintf(stderr, "[Memory] Invalid read address: 0x%08x\n", addr);
     return 0;
