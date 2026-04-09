@@ -74,19 +74,22 @@ uint32_t rtc_read(int offset) {
 }
 
 uint32_t kbd_read() {
-    return key_pressed;
+    return (uint32_t)key_pressed;
 }
 
 uint32_t vgactl_read(int offset) {
-    if (offset == 0) return (SCREEN_W << 16) | SCREEN_H;
+    if (offset == 0) return (uint32_t)((SCREEN_W << 16) | SCREEN_H);
     return 0;
 }
 
 void vgactl_write(int offset, uint32_t data) {
+    (void)offset;
+    (void)data;
     // Stub
 }
 
 void fb_write(uint32_t addr, int len, uint32_t data) {
+    (void)len;
     uint32_t offset = (addr - FB_ADDR) / 4;
     if (offset < SCREEN_W * SCREEN_H) {
         fb[offset] = data;

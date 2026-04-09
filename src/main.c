@@ -31,8 +31,8 @@ void nemu_step() {
       uint32_t funct3 = FUNC3(instr);
       uint32_t addr = cpu.gpr[rs1] + imm;
       switch (funct3) {
-        case 0: cpu.gpr[rd] = sext(paddr_read(addr, 1), 8); break;  // LB
-        case 1: cpu.gpr[rd] = sext(paddr_read(addr, 2), 16); break; // LH
+        case 0: cpu.gpr[rd] = (word_t)sext(paddr_read(addr, 1), 8); break;  // LB
+        case 1: cpu.gpr[rd] = (word_t)sext(paddr_read(addr, 2), 16); break; // LH
         case 2: cpu.gpr[rd] = paddr_read(addr, 4); break;           // LW
         case 4: cpu.gpr[rd] = paddr_read(addr, 1); break;           // LBU
         case 5: cpu.gpr[rd] = paddr_read(addr, 2); break;           // LHU
@@ -52,7 +52,7 @@ void nemu_step() {
         case 1: cpu.gpr[rd] = cpu.gpr[rs1] << shamt; break; // SLLI
         case 5:
           if (BITS(instr, 31, 30) == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> shamt; // SRLI
-          else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> shamt; // SRAI
+          else cpu.gpr[rd] = (word_t)((int32_t)cpu.gpr[rs1] >> shamt); // SRAI
           break;
         default: fprintf(stderr, "[Execute] Unknown OP-IMM funct3: %d\n", funct3);
       }
@@ -70,12 +70,12 @@ void nemu_step() {
       if (funct7 == 1) { // RV32M Extension
         switch (funct3) {
           case 0: cpu.gpr[rd] = cpu.gpr[rs1] * cpu.gpr[rs2]; break; // MUL
-          case 1: cpu.gpr[rd] = ((int64_t)(int32_t)cpu.gpr[rs1] * (int64_t)(int32_t)cpu.gpr[rs2]) >> 32; break; // MULH
-          case 2: cpu.gpr[rd] = ((int64_t)(int32_t)cpu.gpr[rs1] * (uint64_t)cpu.gpr[rs2]) >> 32; break; // MULHSU
-          case 3: cpu.gpr[rd] = ((uint64_t)cpu.gpr[rs1] * (uint64_t)cpu.gpr[rs2]) >> 32; break; // MULHU
-          case 4: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? -1 : (int32_t)cpu.gpr[rs1] / (int32_t)cpu.gpr[rs2]; break; // DIV
-          case 5: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? -1 : cpu.gpr[rs1] / cpu.gpr[rs2]; break; // DIVU
-          case 6: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? cpu.gpr[rs1] : (int32_t)cpu.gpr[rs1] % (int32_t)cpu.gpr[rs2]; break; // REM
+          case 1: cpu.gpr[rd] = (word_t)(((int64_t)(int32_t)cpu.gpr[rs1] * (int64_t)(int32_t)cpu.gpr[rs2]) >> 32); break; // MULH
+          case 2: cpu.gpr[rd] = (word_t)(((int64_t)(int32_t)cpu.gpr[rs1] * (uint64_t)cpu.gpr[rs2]) >> 32); break; // MULHSU
+          case 3: cpu.gpr[rd] = (word_t)(((uint64_t)cpu.gpr[rs1] * (uint64_t)cpu.gpr[rs2]) >> 32); break; // MULHU
+          case 4: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? 0xFFFFFFFFU : (word_t)((int32_t)cpu.gpr[rs1] / (int32_t)cpu.gpr[rs2]); break; // DIV
+          case 5: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? 0xFFFFFFFFU : cpu.gpr[rs1] / cpu.gpr[rs2]; break; // DIVU
+          case 6: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? cpu.gpr[rs1] : (word_t)((int32_t)cpu.gpr[rs1] % (int32_t)cpu.gpr[rs2]); break; // REM
           case 7: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? cpu.gpr[rs1] : cpu.gpr[rs1] % cpu.gpr[rs2]; break; // REMU
         }
       } else { // Standard R-Type
@@ -90,7 +90,7 @@ void nemu_step() {
           case 4: cpu.gpr[rd] = cpu.gpr[rs1] ^ cpu.gpr[rs2]; break; // XOR
           case 5:
             if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRL
-            else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRA
+            else cpu.gpr[rd] = (word_t)((int32_t)cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f)); // SRA
             break;
           case 6: cpu.gpr[rd] = cpu.gpr[rs1] | cpu.gpr[rs2]; break; // OR
           case 7: cpu.gpr[rd] = cpu.gpr[rs1] & cpu.gpr[rs2]; break; // AND
@@ -105,7 +105,7 @@ void nemu_step() {
     case 0x23: { // Store
       uint32_t funct3 = FUNC3(instr);
       int32_t s_imm = sext(IMM_S(instr), 12);
-      uint32_t addr = cpu.gpr[rs1] + s_imm;
+      uint32_t addr = cpu.gpr[rs1] + (word_t)s_imm;
       switch (funct3) {
         case 0: paddr_write(addr, 1, cpu.gpr[rs2]); break; // SB
         case 1: paddr_write(addr, 2, cpu.gpr[rs2]); break; // SH
@@ -117,7 +117,7 @@ void nemu_step() {
     case 0x67: { // JALR
       int32_t i_imm = sext(IMM_I(instr), 12);
       uint32_t temp_ret = cpu.pc + 4;
-      next_pc = (cpu.gpr[rs1] + i_imm) & ~1;
+      next_pc = (cpu.gpr[rs1] + (word_t)i_imm) & ~1U;
       cpu.gpr[rd] = temp_ret;
       fprintf(stderr, "[Execute] JALR x%d (%s), x%d (%s), %d -> next_pc = 0x%08x\n", rd, regs[rd], rs1, regs[rs1], i_imm, next_pc);
       break;
@@ -125,7 +125,7 @@ void nemu_step() {
     case 0x6f: { // JAL
       int32_t j_imm = sext(IMM_J(instr), 21);
       cpu.gpr[rd] = cpu.pc + 4;
-      next_pc = cpu.pc + j_imm;
+      next_pc = cpu.pc + (word_t)j_imm;
       fprintf(stderr, "[Execute] JAL x%d (%s), offset %d -> next_pc = 0x%08x\n", rd, regs[rd], j_imm, next_pc);
       break;
     }
@@ -141,7 +141,7 @@ void nemu_step() {
         case 6: taken = (cpu.gpr[rs1] < cpu.gpr[rs2]); break;  // BLTU
         case 7: taken = (cpu.gpr[rs1] >= cpu.gpr[rs2]); break; // BGEU
       }
-      if (taken) next_pc = cpu.pc + b_imm;
+      if (taken) next_pc = cpu.pc + (word_t)b_imm;
       break;
     }
     case 0x73: { // SYSTEM
@@ -161,8 +161,6 @@ void nemu_step() {
             cpu.mcause = 3;  // Breakpoint
             next_pc = cpu.mtvec;
             fprintf(stderr, "[Trap]    EBREAK at PC = 0x%08x, jump to mtvec = 0x%08x\n", cpu.pc, next_pc);
-            // We keep the old EBREAK monitor-halt logic as a backup or special handling
-            // For full architectural simulation, we jump to mtvec.
             break;
           case 0x302: // MRET
             next_pc = cpu.mepc;
