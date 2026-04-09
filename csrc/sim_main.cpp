@@ -5,6 +5,7 @@
 extern "C" {
     long load_image(const char *img_file);
     void init_device();
+    void device_update();
 }
 
 int main(int argc, char** argv) {
@@ -20,11 +21,12 @@ int main(int argc, char** argv) {
 
     Vdummy_cpu* top = new Vdummy_cpu;
 
-    for (int i = 0; i < 10; ++i) {
+    for (int i = 0; i < 10000; ++i) {
         top->clk = 0;
         top->eval();
         top->clk = 1;
         top->eval();
+        if (i % 1024 == 0) device_update();
     }
 
     delete top;

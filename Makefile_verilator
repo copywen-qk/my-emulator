@@ -1,6 +1,9 @@
 # Verilator configuration
 VERILATOR = verilator
-VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall -CFLAGS "-DCONFIG_VERILATOR -I../include" -Iinclude
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
+	-CFLAGS "-DCONFIG_VERILATOR -I../include $(shell sdl2-config --cflags)" \
+	-LDFLAGS "$(shell sdl2-config --libs)" \
+	-Iinclude
 
 # Sources
 VSRC = vsrc/dummy_cpu.v

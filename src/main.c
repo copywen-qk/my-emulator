@@ -219,6 +219,7 @@ void cpu_exec(uint32_t n) {
   cpu.state = NEMU_RUNNING;
   for (uint32_t i = 0; i < n; i++) {
     nemu_step();
+    if (i % 1024 == 0) device_update();
     if (cpu.state != NEMU_RUNNING) break;
   }
 }

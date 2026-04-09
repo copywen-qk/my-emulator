@@ -1,18 +1,18 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -Iinclude
+CFLAGS = -Wall -Wextra -Iinclude $(shell sdl2-config --cflags)
+LDFLAGS = $(shell sdl2-config --libs)
 SRC_DIR = src
 OBJ_DIR = build
 TARGET = $(OBJ_DIR)/nemu
 
 SRCS = $(wildcard $(SRC_DIR)/*.c)
-# Ensure device.c is included if wildcard is used, it should be fine.
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
 	@mkdir -p $(OBJ_DIR)
-	$(CC) $(CFLAGS) -o $@ $^
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(OBJ_DIR)

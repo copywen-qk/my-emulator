@@ -12,6 +12,8 @@ uint8_t* guest_to_host(uint32_t addr) { return pmem + (addr - MEM_BASE); }
 uint32_t paddr_read(uint32_t addr, int len) {
   if (addr == RTC_ADDR) return rtc_read(0);
   if (addr == RTC_ADDR + 4) return rtc_read(4);
+  if (addr == KBD_ADDR) return kbd_read();
+  if (addr >= VGACTL_ADDR && addr < VGACTL_ADDR + 8) return vgactl_read(addr - VGACTL_ADDR);
   if (addr < MEM_BASE || addr >= MEM_BASE + MEM_SIZE) {
     fprintf(stderr, "[Memory] Invalid read address: 0x%08x\n", addr);
     return 0;
@@ -29,6 +31,14 @@ void paddr_write(uint32_t addr, int len, uint32_t data) {
   if (addr == SERIAL_PORT) {
     fputc((char)data, stdout);
     fflush(stdout);
+    return;
+  }
+  if (addr >= VGACTL_ADDR && addr < VGACTL_ADDR + 8) {
+    vgactl_write(addr - VGACTL_ADDR, data);
+    return;
+  }
+  if (addr >= FB_ADDR && addr < FB_ADDR + 400 * 300 * 4) {
+    fb_write(addr, len, data);
     return;
   }
   if (addr < MEM_BASE || addr >= MEM_BASE + MEM_SIZE) {
