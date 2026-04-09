@@ -67,21 +67,34 @@ void nemu_step() {
     case 0x33: { // OP (R-Type)
       uint32_t funct3 = FUNC3(instr);
       uint32_t funct7 = FUNC7(instr);
-      switch (funct3) {
-        case 0:
-          if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] + cpu.gpr[rs2]; // ADD
-          else cpu.gpr[rd] = cpu.gpr[rs1] - cpu.gpr[rs2]; // SUB
-          break;
-        case 1: cpu.gpr[rd] = cpu.gpr[rs1] << (cpu.gpr[rs2] & 0x1f); break; // SLL
-        case 2: cpu.gpr[rd] = ((int32_t)cpu.gpr[rs1] < (int32_t)cpu.gpr[rs2]) ? 1 : 0; break; // SLT
-        case 3: cpu.gpr[rd] = (cpu.gpr[rs1] < cpu.gpr[rs2]) ? 1 : 0; break; // SLTU
-        case 4: cpu.gpr[rd] = cpu.gpr[rs1] ^ cpu.gpr[rs2]; break; // XOR
-        case 5:
-          if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRL
-          else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRA
-          break;
-        case 6: cpu.gpr[rd] = cpu.gpr[rs1] | cpu.gpr[rs2]; break; // OR
-        case 7: cpu.gpr[rd] = cpu.gpr[rs1] & cpu.gpr[rs2]; break; // AND
+      if (funct7 == 1) { // RV32M Extension
+        switch (funct3) {
+          case 0: cpu.gpr[rd] = cpu.gpr[rs1] * cpu.gpr[rs2]; break; // MUL
+          case 1: cpu.gpr[rd] = ((int64_t)(int32_t)cpu.gpr[rs1] * (int64_t)(int32_t)cpu.gpr[rs2]) >> 32; break; // MULH
+          case 2: cpu.gpr[rd] = ((int64_t)(int32_t)cpu.gpr[rs1] * (uint64_t)cpu.gpr[rs2]) >> 32; break; // MULHSU
+          case 3: cpu.gpr[rd] = ((uint64_t)cpu.gpr[rs1] * (uint64_t)cpu.gpr[rs2]) >> 32; break; // MULHU
+          case 4: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? -1 : (int32_t)cpu.gpr[rs1] / (int32_t)cpu.gpr[rs2]; break; // DIV
+          case 5: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? -1 : cpu.gpr[rs1] / cpu.gpr[rs2]; break; // DIVU
+          case 6: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? cpu.gpr[rs1] : (int32_t)cpu.gpr[rs1] % (int32_t)cpu.gpr[rs2]; break; // REM
+          case 7: cpu.gpr[rd] = (cpu.gpr[rs2] == 0) ? cpu.gpr[rs1] : cpu.gpr[rs1] % cpu.gpr[rs2]; break; // REMU
+        }
+      } else { // Standard R-Type
+        switch (funct3) {
+          case 0:
+            if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] + cpu.gpr[rs2]; // ADD
+            else cpu.gpr[rd] = cpu.gpr[rs1] - cpu.gpr[rs2]; // SUB
+            break;
+          case 1: cpu.gpr[rd] = cpu.gpr[rs1] << (cpu.gpr[rs2] & 0x1f); break; // SLL
+          case 2: cpu.gpr[rd] = ((int32_t)cpu.gpr[rs1] < (int32_t)cpu.gpr[rs2]) ? 1 : 0; break; // SLT
+          case 3: cpu.gpr[rd] = (cpu.gpr[rs1] < cpu.gpr[rs2]) ? 1 : 0; break; // SLTU
+          case 4: cpu.gpr[rd] = cpu.gpr[rs1] ^ cpu.gpr[rs2]; break; // XOR
+          case 5:
+            if (funct7 == 0) cpu.gpr[rd] = cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRL
+            else cpu.gpr[rd] = (int32_t)cpu.gpr[rs1] >> (cpu.gpr[rs2] & 0x1f); // SRA
+            break;
+          case 6: cpu.gpr[rd] = cpu.gpr[rs1] | cpu.gpr[rs2]; break; // OR
+          case 7: cpu.gpr[rd] = cpu.gpr[rs1] & cpu.gpr[rs2]; break; // AND
+        }
       }
       break;
     }

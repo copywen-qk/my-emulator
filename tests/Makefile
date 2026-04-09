@@ -5,9 +5,9 @@ LD = $(CROSS_COMPILE)ld
 OBJCOPY = $(CROSS_COMPILE)objcopy
 OBJDUMP = $(CROSS_COMPILE)objdump
 
-CFLAGS = -march=rv32i -mabi=ilp32 -nostdlib
+CFLAGS = -march=rv32i -mabi=ilp32 -nostdlib -O2
 
-all: dummy.bin dummy.txt
+all: dummy.bin dummy.txt vga_test.bin
 
 dummy.elf: dummy.S link.ld
 	$(CC) $(CFLAGS) -T link.ld dummy.S -o dummy.elf
@@ -18,7 +18,13 @@ dummy.bin: dummy.elf
 dummy.txt: dummy.elf
 	$(OBJDUMP) -d dummy.elf > dummy.txt
 
+vga_test.elf: vga_test.c link.ld
+	$(CC) $(CFLAGS) -T link.ld vga_test.c -o vga_test.elf
+
+vga_test.bin: vga_test.elf
+	$(OBJCOPY) -S -O binary vga_test.elf vga_test.bin
+
 clean:
-	rm -f dummy.elf dummy.bin dummy.txt
+	rm -f *.elf *.bin *.txt
 
 .PHONY: all clean
