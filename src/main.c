@@ -239,6 +239,7 @@ void cpu_exec(uint32_t n) {
 int main(int argc, char *argv[]) {
   char buf[128];
   init_device();
+  cpu.gpr[2] = MEM_BASE + MEM_SIZE;
   if (argc > 1) {
     load_image(argv[1]);
   } else {

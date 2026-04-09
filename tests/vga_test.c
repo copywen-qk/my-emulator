@@ -13,7 +13,7 @@ void _start() {
 
     for (int y = 0; y < height; y++) {
         for (int x = 0; x < width; x++) {
-            draw_pixel(x, y, width, 0x00FF00); // Green (ARGB: 0x0000FF00)
+            draw_pixel(x, y, width, 0xFF00FF00); // Green (ARGB: 0xFF00FF00)
         }
     }
 

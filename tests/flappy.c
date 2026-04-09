@@ -44,15 +44,15 @@ void _start() {
 
       // Draw Bird (Yellow)
       if (x >= 50 && x < 65 && y >= bird_y && y < bird_y + 15) {
-        fb[i] = 0xFFFF00;
+        fb[i] = 0xFFFFFF00;
       }
       // Draw Pipe (Green)
       else if (x >= pipe_x && x < pipe_x + pipe_w && (y < pipe_y || y > pipe_y + pipe_gap)) {
-        fb[i] = 0x00FF00;
+        fb[i] = 0xFF00FF00;
       }
       // Background (Sky Blue)
       else {
-        fb[i] = 0x87CEEB;
+        fb[i] = 0xFF87CEEB;
       }
     }
   }
