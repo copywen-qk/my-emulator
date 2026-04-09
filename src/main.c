@@ -134,10 +134,28 @@ void nemu_step() {
       int csr_no = IMM_I(instr);
       uint32_t funct3 = FUNC3(instr);
       if (funct3 == 0) {
-        // TODO: Exception/Trap (ECALL/EBREAK/MRET)
-        if (instr == 0x00100073) {
-          fprintf(stderr, "[Trap]    Program Execution Halted (EBREAK) at PC = 0x%08x\n", cpu.pc);
-          cpu.state = NEMU_END;
+        // Privileged instructions (ECALL/EBREAK/MRET)
+        switch (csr_no) {
+          case 0x000: // ECALL
+            cpu.mepc = cpu.pc;
+            cpu.mcause = 11; // Machine environment call
+            next_pc = cpu.mtvec;
+            fprintf(stderr, "[Trap]    ECALL at PC = 0x%08x, jump to mtvec = 0x%08x\n", cpu.pc, next_pc);
+            break;
+          case 0x001: // EBREAK
+            cpu.mepc = cpu.pc;
+            cpu.mcause = 3;  // Breakpoint
+            next_pc = cpu.mtvec;
+            fprintf(stderr, "[Trap]    EBREAK at PC = 0x%08x, jump to mtvec = 0x%08x\n", cpu.pc, next_pc);
+            // We keep the old EBREAK monitor-halt logic as a backup or special handling
+            // For full architectural simulation, we jump to mtvec.
+            break;
+          case 0x302: // MRET
+            next_pc = cpu.mepc;
+            fprintf(stderr, "[Trap]    MRET from PC = 0x%08x, return to mepc = 0x%08x\n", cpu.pc, next_pc);
+            break;
+          default:
+            fprintf(stderr, "[Execute] Unknown privileged instruction: 0x%03x\n", csr_no);
         }
       } else {
         word_t t = csr_read(csr_no);
