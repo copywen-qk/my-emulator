@@ -8,6 +8,10 @@
 #define VGACTL_ADDR 0xa0000100
 #define FB_ADDR 0xa1000000
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void init_device();
 void device_update();
 uint32_t rtc_read(int offset);
@@ -15,5 +19,9 @@ uint32_t kbd_read();
 uint32_t vgactl_read(int offset);
 void vgactl_write(int offset, uint32_t data);
 void fb_write(uint32_t addr, int len, uint32_t data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
