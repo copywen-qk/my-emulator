@@ -23,7 +23,9 @@ void nemu_step() {
   uint32_t rs2 = RS2(instr);
   uint32_t next_pc = cpu.pc + 4;
 
-  fprintf(stderr, "[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
+  // Verbose logging is disabled for performance. 
+  // To debug, uncomment the following line:
+  // fprintf(stderr, "[Fetch]   PC = 0x%08x, Instr = 0x%08x\n", cpu.pc, instr);
   
   switch (opcode) {
     case 0x03: { // Load
@@ -61,7 +63,6 @@ void nemu_step() {
     case 0x17: { // AUIPC
       uint32_t u_imm = IMM_U(instr);
       cpu.gpr[rd] = cpu.pc + u_imm;
-      fprintf(stderr, "[Execute] AUIPC x%d (%s), 0x%08x -> x%d = 0x%08x\n", rd, regs[rd], u_imm, rd, cpu.gpr[rd]);
       break;
     }
     case 0x33: { // OP (R-Type)
@@ -100,7 +101,6 @@ void nemu_step() {
     }
     case 0x37: // LUI
       cpu.gpr[rd] = IMM_U(instr);
-      fprintf(stderr, "[Execute] LUI x%d (%s), 0x%08x\n", rd, regs[rd], cpu.gpr[rd]);
       break;
     case 0x23: { // Store
       uint32_t funct3 = FUNC3(instr);
@@ -119,14 +119,12 @@ void nemu_step() {
       uint32_t temp_ret = cpu.pc + 4;
       next_pc = (cpu.gpr[rs1] + (word_t)i_imm) & ~1U;
       cpu.gpr[rd] = temp_ret;
-      fprintf(stderr, "[Execute] JALR x%d (%s), x%d (%s), %d -> next_pc = 0x%08x\n", rd, regs[rd], rs1, regs[rs1], i_imm, next_pc);
       break;
     }
     case 0x6f: { // JAL
       int32_t j_imm = sext(IMM_J(instr), 21);
       cpu.gpr[rd] = cpu.pc + 4;
       next_pc = cpu.pc + (word_t)j_imm;
-      fprintf(stderr, "[Execute] JAL x%d (%s), offset %d -> next_pc = 0x%08x\n", rd, regs[rd], j_imm, next_pc);
       break;
     }
     case 0x63: { // Branch
@@ -228,9 +226,9 @@ void csr_write(int csr_no, word_t val) {
 
 void cpu_exec(uint32_t n) {
   cpu.state = NEMU_RUNNING;
-  for (uint32_t i = 0; i < n; i++) {
+  for (uint32_t i = 0; n == 0xFFFFFFFFU || i < n; i++) {
     nemu_step();
-    if (i % 1024 == 0) device_update();
+    if (i % 8192 == 0) device_update();
     if (cpu.state != NEMU_RUNNING) break;
   }
 }
