@@ -1,0 +1,38 @@
+# Verilator configuration for RV32IM CPU
+VERILATOR = verilator
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
+	-CFLAGS "-DCONFIG_VERILATOR -I../include $(shell sdl2-config --cflags)" \
+	-LDFLAGS "$(shell sdl2-config --libs)" \
+	--top-module rv32im_cpu \
+	-Iinclude
+
+# Sources
+VSRC = vsrc/rv32im_cpu.v
+CSRC = csrc/sim_main_new.cpp src/main.c src/memory.c src/device.c src/dpi.c
+VOBJS = obj_dir/Vrv32im_cpu
+
+.PHONY: sim run clean
+
+sim: $(VOBJS)
+
+$(VOBJS): $(VSRC) $(CSRC)
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VSRC) $(CSRC)
+
+run: sim
+	./obj_dir/Vrv32im_cpu tests/dummy.bin
+
+clean:
+	rm -rf obj_dir
+
+# Test targets
+test-dummy: sim
+	@echo "Running dummy test..."
+	./obj_dir/Vrv32im_cpu tests/dummy.bin
+
+test-vga: sim
+	@echo "Running VGA test..."
+	./obj_dir/Vrv32im_cpu tests/vga_test.bin
+
+test-flappy: sim
+	@echo "Running Flappy Bird test..."
+	./obj_dir/Vrv32im_cpu tests/flappy.bin
