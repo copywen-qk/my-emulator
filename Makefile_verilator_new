@@ -8,7 +8,7 @@ VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
 
 # Sources
 VSRC = vsrc/rv32im_cpu.v
-CSRC = csrc/sim_main_new.cpp src/main.c src/memory.c src/device.c src/dpi.c
+CSRC = csrc/sim_main_rv32im_cpu.cpp csrc/dpi_minimal.c
 VOBJS = obj_dir/Vrv32im_cpu
 
 .PHONY: sim run clean

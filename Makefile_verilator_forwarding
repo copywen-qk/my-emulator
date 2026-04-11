@@ -8,7 +8,7 @@ VERILATOR_FLAGS = -Wall -Wno-fatal -Wno-lint -Wno-style -Wno-width \
 
 # Source files
 VSRC = vsrc/rv32im_pipeline_forwarding.v
-CSRC = csrc/sim_main_forwarding.cpp src/dpi.c
+CSRC = csrc/sim_main_forwarding.cpp csrc/dpi_minimal.c
 
 # Output directory
 OBJ_DIR = obj_dir_forwarding

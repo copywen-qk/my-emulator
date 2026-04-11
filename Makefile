@@ -5,7 +5,8 @@ SRC_DIR = src
 OBJ_DIR = build
 TARGET = $(OBJ_DIR)/nemu
 
-SRCS = $(wildcard $(SRC_DIR)/*.c)
+# Exclude dpi_simple.c to avoid duplicate definitions
+SRCS = $(filter-out $(SRC_DIR)/dpi_simple.c, $(wildcard $(SRC_DIR)/*.c))
 OBJS = $(SRCS:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 all: $(TARGET)

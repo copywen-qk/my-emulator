@@ -9,10 +9,7 @@ VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
 
 VERILATOR_SOURCES = vsrc/rv32im_y86_pipeline.v \
 	csrc/sim_main_new.cpp \
-	src/main.c \
-	src/memory.c \
-	src/device.c \
-	src/dpi.c
+	csrc/dpi_minimal.c
 
 OBJ_DIR = obj_dir_y86_complete
 
