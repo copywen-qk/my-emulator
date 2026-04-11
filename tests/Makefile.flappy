@@ -1,0 +1,72 @@
+# Makefile for Flappy Bird games
+
+CC = riscv64-unknown-elf-gcc
+CFLAGS = -march=rv32im -mabi=ilp32 -O2 -nostdlib -Ttext=0x80000000
+OBJCOPY = riscv64-unknown-elf-objcopy
+
+# Source files
+FLAPPY_SRC = flappy.c
+FLAPPY_ADVANCED_SRC = flappy_advanced.c
+FLAPPY_IMPROVED_SRC = flappy_improved.c
+FLAPPY_SIMPLE_ADVANCED_SRC = flappy_simple_advanced.c
+FLAPPY_FINAL_SRC = flappy_final.c
+
+# Output files
+FLAPPY_BIN = flappy.bin
+FLAPPY_ADVANCED_BIN = flappy_advanced.bin
+FLAPPY_IMPROVED_BIN = flappy_improved.bin
+FLAPPY_SIMPLE_ADVANCED_BIN = flappy_simple_advanced.bin
+FLAPPY_FINAL_BIN = flappy_final.bin
+
+all: $(FLAPPY_BIN) $(FLAPPY_FINAL_BIN)
+
+# Original flappy bird
+$(FLAPPY_BIN): $(FLAPPY_SRC) am.h
+	$(CC) $(CFLAGS) -o flappy.elf $(FLAPPY_SRC)
+	$(OBJCOPY) -O binary flappy.elf $(FLAPPY_BIN)
+	@echo "Built original flappy bird: $(FLAPPY_BIN)"
+
+# Advanced flappy bird with lives and score
+$(FLAPPY_ADVANCED_BIN): $(FLAPPY_ADVANCED_SRC) am.h
+	$(CC) $(CFLAGS) -o flappy_advanced.elf $(FLAPPY_ADVANCED_SRC)
+	$(OBJCOPY) -O binary flappy_advanced.elf $(FLAPPY_ADVANCED_BIN)
+	@echo "Built advanced flappy bird: $(FLAPPY_ADVANCED_BIN)"
+
+# Improved flappy bird (full features)
+$(FLAPPY_IMPROVED_BIN): $(FLAPPY_IMPROVED_SRC) am.h
+	$(CC) $(CFLAGS) -o flappy_improved.elf $(FLAPPY_IMPROVED_SRC)
+	$(OBJCOPY) -O binary flappy_improved.elf $(FLAPPY_IMPROVED_BIN)
+	@echo "Built improved flappy bird: $(FLAPPY_IMPROVED_BIN)"
+
+# Simple advanced flappy bird
+$(FLAPPY_SIMPLE_ADVANCED_BIN): $(FLAPPY_SIMPLE_ADVANCED_SRC) am.h
+	$(CC) $(CFLAGS) -o flappy_simple_advanced.elf $(FLAPPY_SIMPLE_ADVANCED_SRC)
+	$(OBJCOPY) -O binary flappy_simple_advanced.elf $(FLAPPY_SIMPLE_ADVANCED_BIN)
+	@echo "Built simple advanced flappy bird: $(FLAPPY_SIMPLE_ADVANCED_BIN)"
+
+# Final flappy bird (推薦使用)
+$(FLAPPY_FINAL_BIN): $(FLAPPY_FINAL_SRC) am.h
+	$(CC) $(CFLAGS) -o flappy_final.elf $(FLAPPY_FINAL_SRC)
+	$(OBJCOPY) -O binary flappy_final.elf $(FLAPPY_FINAL_BIN)
+	@echo "Built final flappy bird: $(FLAPPY_FINAL_BIN)"
+
+clean:
+	rm -f *.elf *.bin
+	@echo "Cleaned all flappy bird binaries"
+
+test-original: $(FLAPPY_BIN)
+	@echo "To test original flappy bird, load $(FLAPPY_BIN) into NEMU"
+
+test-advanced: $(FLAPPY_ADVANCED_BIN)
+	@echo "To test advanced flappy bird, load $(FLAPPY_ADVANCED_BIN) into NEMU"
+
+test-improved: $(FLAPPY_IMPROVED_BIN)
+	@echo "To test improved flappy bird, load $(FLAPPY_IMPROVED_BIN) into NEMU"
+
+test-simple-advanced: $(FLAPPY_SIMPLE_ADVANCED_BIN)
+	@echo "To test simple advanced flappy bird, load $(FLAPPY_SIMPLE_ADVANCED_BIN) into NEMU"
+
+test-final: $(FLAPPY_FINAL_BIN)
+	@echo "To test final flappy bird, load $(FLAPPY_FINAL_BIN) into NEMU"
+
+.PHONY: all clean test-original test-advanced test-improved test-simple-advanced test-final
