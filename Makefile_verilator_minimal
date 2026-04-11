@@ -1,0 +1,33 @@
+# Makefile for minimal pipeline CPU simulation with Verilator
+
+VERILATOR = verilator
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
+	-CFLAGS "-DCONFIG_VERILATOR -I../include -I/usr/include/SDL2 -D_REENTRANT" \
+	-LDFLAGS "-lSDL2" \
+	--top-module rv32im_pipeline_minimal \
+	-Iinclude
+
+VERILATOR_SOURCES = vsrc/rv32im_pipeline_minimal.v \
+	csrc/sim_main_minimal.cpp \
+	src/main.c \
+	src/memory.c \
+	src/device.c \
+	src/dpi.c
+
+OBJ_DIR = obj_dir_minimal
+
+all: $(OBJ_DIR)/Vrv32im_pipeline_minimal
+
+$(OBJ_DIR)/Vrv32im_pipeline_minimal: $(VERILATOR_SOURCES)
+	$(VERILATOR) $(VERILATOR_FLAGS) $^ --Mdir $(OBJ_DIR)
+
+sim: $(OBJ_DIR)/Vrv32im_pipeline_minimal
+	@echo "Simulation executable built in $(OBJ_DIR)/"
+
+run: sim
+	cd $(OBJ_DIR) && ./Vrv32im_pipeline_minimal ../tests/minimal_test.bin
+
+clean:
+	rm -rf $(OBJ_DIR)
+
+.PHONY: all sim run clean

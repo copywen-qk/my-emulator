@@ -1,10 +1,10 @@
 #include <verilated.h>
 #include <iostream>
 #include <cstdlib>
+#include <cstdio>
 
 // Include the generated Verilated model
-// This will be replaced by the actual header during compilation
-// The actual header name depends on the top module name
+#include "Vrv32im_pipeline_improved.h"
 
 // DPI-C functions from NEMU
 extern "C" {
@@ -36,12 +36,14 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::cout << "Starting RV32IM CPU simulation..." << std::endl;
+    std::cout << "Starting RV32IM Improved Pipeline CPU simulation..." << std::endl;
+    std::cout << "Test image: " << argv[1] << std::endl;
     
     // Create the CPU instance
-    Vrv32im_y86_pipeline* cpu = new Vrv32im_y86_pipeline;
+    Vrv32im_pipeline_improved* cpu = new Vrv32im_pipeline_improved;
     
     // Reset the CPU
+    std::cout << "Resetting CPU..." << std::endl;
     cpu->rst_n = 0;
     cpu->clk = 0;
     cpu->eval();
@@ -52,13 +54,26 @@ int main(int argc, char** argv) {
     
     // Release reset
     cpu->rst_n = 1;
+    std::cout << "CPU reset released, starting simulation..." << std::endl;
     
     // Simulation loop
     int max_cycles = 100000;
+    int instruction_count = 0;
+    
     for (int cycle = 0; cycle < max_cycles; ++cycle) {
         // Toggle clock
         cpu->clk = !cpu->clk;
         cpu->eval();
+        
+        // Count instructions (on rising edge)
+        if (cpu->clk == 1) {
+            instruction_count++;
+            
+            // Print progress every 1000 cycles
+            if (cycle % 1000 == 0) {
+                std::cout << "Cycle: " << cycle << ", Instructions: " << instruction_count << std::endl;
+            }
+        }
         
         // Update device (SDL, etc.) every 1024 cycles
         if (cycle % 1024 == 0) {
@@ -72,7 +87,9 @@ int main(int argc, char** argv) {
         }
     }
     
-    std::cout << "Simulation completed after " << max_cycles << " cycles" << std::endl;
+    std::cout << "\nSimulation completed after " << max_cycles << " cycles" << std::endl;
+    std::cout << "Estimated instructions executed: " << instruction_count << std::endl;
+    std::cout << "Approximate CPI: " << (max_cycles / (float)(instruction_count + 1)) << std::endl;
     
     // Cleanup
     delete cpu;

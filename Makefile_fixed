@@ -1,0 +1,23 @@
+VERILATOR = verilator
+VERILATOR_FLAGS = -Wall -Wno-fatal -Wno-lint -Wno-style -Wno-width \
+                  --cc --exe --build --trace \
+                  --top-module rv32im_pipeline_fixed \
+                  -CFLAGS "-std=c++11 -g -O2 -I./include"
+
+VSRC = vsrc/rv32im_pipeline_fixed.v
+CSRC = csrc/sim_main_new.cpp src/dpi.c
+
+OBJ_DIR = obj_dir_fixed
+
+all: $(OBJ_DIR)/Vrv32im_pipeline_fixed
+
+$(OBJ_DIR)/Vrv32im_pipeline_fixed: $(VSRC) $(CSRC)
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VSRC) $(CSRC) -o $(OBJ_DIR)/Vrv32im_pipeline_fixed
+
+clean:
+	rm -rf $(OBJ_DIR)
+
+test: $(OBJ_DIR)/Vrv32im_pipeline_fixed
+	./$(OBJ_DIR)/Vrv32im_pipeline_fixed tests/pipeline_simple_flow.bin 2>&1 | head -100
+
+.PHONY: all clean test

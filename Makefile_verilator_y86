@@ -1,0 +1,47 @@
+# Verilator configuration for Y86-style RV32IM Pipeline CPU
+VERILATOR = verilator
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
+	-CFLAGS "-DCONFIG_VERILATOR -I../include $(shell sdl2-config --cflags)" \
+	-LDFLAGS "$(shell sdl2-config --libs)" \
+	--top-module rv32im_pipeline_y86 \
+	-Iinclude
+
+# Sources
+VSRC = vsrc/rv32im_pipeline_y86.v
+CSRC = csrc/sim_main_new.cpp src/main.c src/memory.c src/device.c src/dpi.c
+VOBJS = obj_dir_y86/Vrv32im_pipeline_y86
+
+.PHONY: sim run clean test
+
+sim: $(VOBJS)
+
+$(VOBJS): $(VSRC) $(CSRC)
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VSRC) $(CSRC) --Mdir obj_dir_y86
+
+run: sim
+	./obj_dir_y86/Vrv32im_pipeline_y86 tests/minimal_test.bin
+
+clean:
+	rm -rf obj_dir_y86
+
+# Test targets
+test-minimal: sim
+	@echo "Running minimal test with Y86 pipeline..."
+	./obj_dir_y86/Vrv32im_pipeline_y86 tests/minimal_test.bin
+
+test-pipeline: sim
+	@echo "Running pipeline test..."
+	./obj_dir_y86/Vrv32im_pipeline_y86 tests/pipeline_test.bin
+
+test-simple: sim
+	@echo "Running simple test..."
+	./obj_dir_y86/Vrv32im_pipeline_y86 tests/simple_test.bin
+
+# Debug target
+debug: sim
+	@echo "Running with debug output..."
+	./obj_dir_y86/Vrv32im_pipeline_y86 tests/minimal_test.bin 2>&1 | head -30
+
+# Quick compile check
+check:
+	$(VERILATOR) --lint-only $(VERILATOR_FLAGS) $(VSRC) --Mdir obj_dir_check

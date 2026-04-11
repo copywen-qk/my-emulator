@@ -1,0 +1,33 @@
+# Makefile for Y86-style pipeline CPU simulation with Verilator
+
+VERILATOR = verilator
+VERILATOR_FLAGS = --cc --exe --build -j 0 -Wall \
+	-CFLAGS "-DCONFIG_VERILATOR -I../include -I/usr/include/SDL2 -D_REENTRANT" \
+	-LDFLAGS "-lSDL2" \
+	--top-module rv32im_y86_pipeline \
+	-Iinclude
+
+VERILATOR_SOURCES = vsrc/rv32im_y86_pipeline.v \
+	csrc/sim_main_new.cpp \
+	src/main.c \
+	src/memory.c \
+	src/device.c \
+	src/dpi.c
+
+OBJ_DIR = obj_dir_y86_complete
+
+all: $(OBJ_DIR)/Vrv32im_y86_pipeline
+
+$(OBJ_DIR)/Vrv32im_y86_pipeline: $(VERILATOR_SOURCES)
+	$(VERILATOR) $(VERILATOR_FLAGS) $^ --Mdir $(OBJ_DIR)
+
+sim: $(OBJ_DIR)/Vrv32im_y86_pipeline
+	@echo "Simulation executable built in $(OBJ_DIR)/"
+
+run: sim
+	cd $(OBJ_DIR) && ./Vrv32im_y86_pipeline ../tests/minimal_test.bin
+
+clean:
+	rm -rf $(OBJ_DIR)
+
+.PHONY: all sim run clean

@@ -4,7 +4,17 @@ build/
 nemu
 git
 docs/
-obj_dir/
+obj_dir*
 *.elf
 *.bin
 *.txt
+# 排除所有編譯產物目錄
+obj_dir_*
+# 排除臨時測試文件
+*.log
+*.vcd
+# 排除生成的文檔文件（除了核心文檔）
+*.md
+!README.md
+!TEST_REPORT.md
+!PIPELINE_ARCHITECTURE.md

@@ -1,0 +1,25 @@
+# Makefile for basic pipeline CPU
+
+VERILATOR = verilator
+VERILATOR_FLAGS = -Wall -Wno-fatal -Wno-lint -Wno-style -Wno-width \
+                  --cc --exe --build --trace \
+                  --top-module rv32im_pipeline_basic \
+                  -CFLAGS "-std=c++11 -g -O2 -I./include"
+
+VSRC = vsrc/rv32im_pipeline_basic.v
+CSRC = csrc/sim_main_basic.cpp src/dpi.c
+
+OBJ_DIR = obj_dir_basic
+
+all: $(OBJ_DIR)/Vrv32im_pipeline_basic
+
+$(OBJ_DIR)/Vrv32im_pipeline_basic: $(VSRC) $(CSRC)
+	$(VERILATOR) $(VERILATOR_FLAGS) $(VSRC) $(CSRC) -o $(OBJ_DIR)/Vrv32im_pipeline_basic
+
+clean:
+	rm -rf $(OBJ_DIR)
+
+test: $(OBJ_DIR)/Vrv32im_pipeline_basic
+	./$(OBJ_DIR)/Vrv32im_pipeline_basic tests/simple_pipeline_test.bin
+
+.PHONY: all clean test

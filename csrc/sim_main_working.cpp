@@ -3,8 +3,7 @@
 #include <cstdlib>
 
 // Include the generated Verilated model
-// This will be replaced by the actual header during compilation
-// The actual header name depends on the top module name
+#include "Vrv32im_pipeline_working.h"
 
 // DPI-C functions from NEMU
 extern "C" {
@@ -36,10 +35,10 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    std::cout << "Starting RV32IM CPU simulation..." << std::endl;
+    std::cout << "Starting RV32IM Working Pipeline CPU simulation..." << std::endl;
     
     // Create the CPU instance
-    Vrv32im_y86_pipeline* cpu = new Vrv32im_y86_pipeline;
+    Vrv32im_pipeline_working* cpu = new Vrv32im_pipeline_working;
     
     // Reset the CPU
     cpu->rst_n = 0;
@@ -54,27 +53,39 @@ int main(int argc, char** argv) {
     cpu->rst_n = 1;
     
     // Simulation loop
-    int max_cycles = 100000;
-    for (int cycle = 0; cycle < max_cycles; ++cycle) {
+    int cycle = 0;
+    const int max_cycles = 100;
+    
+    while (cycle < max_cycles) {
         // Toggle clock
         cpu->clk = !cpu->clk;
         cpu->eval();
         
-        // Update device (SDL, etc.) every 1024 cycles
-        if (cycle % 1024 == 0) {
+        // Update device on rising edge
+        if (cpu->clk) {
             device_update();
+            cycle++;
+            
+            // Print progress every 10 cycles
+            if (cycle % 10 == 0) {
+                std::cout << "[Cycle " << cycle << "]" << std::endl;
+            }
         }
         
-        // Check for simulation end conditions
+        // Check for simulation end (breakpoint)
         if (Verilated::gotFinish()) {
-            std::cout << "Simulation finished by Verilated::gotFinish()" << std::endl;
             break;
         }
     }
     
-    std::cout << "Simulation completed after " << max_cycles << " cycles" << std::endl;
+    if (cycle >= max_cycles) {
+        std::cout << "Simulation stopped after " << max_cycles << " cycles" << std::endl;
+    } else {
+        std::cout << "Simulation completed in " << cycle << " cycles" << std::endl;
+    }
     
     // Cleanup
     delete cpu;
+    
     return 0;
 }
